@@ -7,7 +7,7 @@ Rede social desenvolvida com uma API pública que permite criação de contas, c
 
 https://github.com/Francinaldapmfaria/Labeddit-Front-end
 
-# Link da aplicação
+# Deploy
 
 https://projeto-labeddit-ammal-franpmf.surge.sh/
 
