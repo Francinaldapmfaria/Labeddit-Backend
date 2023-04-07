@@ -110,8 +110,6 @@ export enum COMMENT_LIKE {
     ALREADY_DISLIKED = "JÁ DISCURTI"
 }
 
-
-
 export enum USER_ROLES {
     USUARIO= "Usuário",
     ADMIN = "Admin"

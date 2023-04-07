@@ -1,5 +1,15 @@
 import { PostsDB, PostsModel } from "../types"
 
+export interface PostModelBusiness {
+    id: string,
+    creatorId: string,
+    content: string,
+    likes: number,
+    dislikes: number,
+    comments: number,
+    createdAt: string
+}
+
 export class Post {
     constructor(
         private id: string,
@@ -124,7 +134,7 @@ export class Post {
                     createdAt: this.createdAt,
                     updatedAt: this.updatedAt,
                     creator: {
-                        id: this.id,
+                        id: this.creatorId,
                         name: this.creatorName
                     }
                 }

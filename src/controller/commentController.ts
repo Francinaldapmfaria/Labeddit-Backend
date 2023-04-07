@@ -48,45 +48,28 @@ export class CommentController {
         }
     }
 
-    // public postsEdit = async (req: Request, res: Response) => {
-    //     try {
-    //         const input: EditPostInputDTO = {
-    //             idToEdit: req.params.id,
-    //             content: req.body.content,
-    //             token: req.headers.authorization
-    //         }
-    //         await this.postBusiness.postsEdit(input)
-    //         res.status(200).end()
-            
-    //     } catch (error) {
-    //         console.log(error)
-    //         if (error instanceof BaseError) {
-    //             res.status(error.statusCode).send(error.message)
-    //         } else {
-    //             res.status(500).send("Erro inesperado")
-    //         }
-            
-    //     }
-    // }
+    public getCommentsByPostId = async (req: Request, res: Response) => {
 
-    // public postsDelete = async (req: Request, res: Response) => {
-    //     try {
-    //        const input: DeletePostInputDTO = {
-    //         idToDelete: req.params.id,
-    //         token: req.headers.authorization
-    //        }
-    //        await this.postBusiness.postsDelete(input)
-    //        res.status(200).end()
+        try {
+            const input: GetCommentInputDTO = {
+                post_id: req.params.id,
+                token: req.headers.authorization
+            }
+ 
+            const output = await this.commentBusiness.getCommentsByPostId(input)
 
-    //     } catch (error) {
-    //         console.log(error)
-    //         if (error instanceof BaseError) {
-    //             res.status(error.statusCode).send(error.message)
-    //         } else {
-    //             res.status(500).send("Erro inesperado")
-    //         }
-    //     }
-    // }
+            res.status(200).send(output)
+
+        } catch (error) {
+            console.log(error)
+
+            if (error instanceof BaseError) {
+                res.status(error.statusCode).send(error.message)
+            } else {
+                res.status(500).send("Erro inesperado.")
+            }
+        }
+    }
 
     public commentsLikeOrDislike = async (req: Request, res: Response) => {
         try {
@@ -95,7 +78,6 @@ export class CommentController {
                 token: req.headers.authorization,
                 like:req.body.like
             }
-
             await this.commentBusiness.commentsLikeOrDislike(input)
             res.status(200).end()
         

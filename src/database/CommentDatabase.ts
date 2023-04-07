@@ -1,15 +1,15 @@
 import { NotFoundError } from "../error/NotFoundError"
-import {  CommentsAndItCreatorDB, CommentsDB, COMMENT_LIKE, LikeDislikeComentsDB, PostsDB } from "../types"
+import {  CommentsAndItCreatorDB, CommentsDB, COMMENT_LIKE, LikeDislikeComentsDB, PostsDB, UserModel } from "../types"
 import { BaseDatabase } from "./BaseDatabase"
+import { PostDatabase } from "./PostDatabase"
 
 
 
 export class CommentDatabase extends BaseDatabase {
     public static TABLE_COMMENTS = "comments"
     public static TABLE_LIKES_DISLIKES = "likes_dislikes_comments"
+    public static TABLE_USERS = "users"
     
-
-
     public getAllCommentIfCreator = async (): Promise<CommentsAndItCreatorDB[]> => {
         const result: CommentsAndItCreatorDB[]= await BaseDatabase
         .connection(CommentDatabase.TABLE_COMMENTS)
@@ -35,8 +35,6 @@ export class CommentDatabase extends BaseDatabase {
         .where({post_id:id})
     }
 
-
-
     public insert = async (commentDB: CommentsDB): Promise<void> => {
         await BaseDatabase.connection(CommentDatabase.TABLE_COMMENTS)
         .insert(commentDB)
@@ -49,6 +47,13 @@ export class CommentDatabase extends BaseDatabase {
         return comment
     }
 
+    public getCommentsByPostId = async (id: string): Promise<CommentsDB[]> => {
+     
+        const result = await BaseDatabase.connection(CommentDatabase.TABLE_COMMENTS)
+            .where({ post_id: id })
+            return result
+            
+    }
 
     public async updateNumberCommments(id: string, value: number): Promise<void> {
         const commentById = await this.getCommentById(id);
@@ -58,7 +63,7 @@ export class CommentDatabase extends BaseDatabase {
         }
 
         const [post]:PostsDB[] = await BaseDatabase
-            .connection(CommentDatabase.TABLE_COMMENTS)
+            .connection(PostDatabase.TABLE_POSTS)
             .where({ id: commentById.post_id })
 
         if (!post) {
@@ -68,31 +73,12 @@ export class CommentDatabase extends BaseDatabase {
         const newCommentsCount = post.comments + value;
 
         await BaseDatabase
-        .connection(CommentDatabase.TABLE_COMMENTS)
+        .connection(PostDatabase.TABLE_POSTS)
         .where({ id: commentById.post_id })
         .update({ comments: newCommentsCount });
     }
 
-    // public findId = async (id: string): Promise<PostsDB |undefined> => {
-    //     const result: PostsDB[]= await BaseDatabase
-    //     .connection(PostDatabase.TABLE_POSTS)
-    //     .select()
-    //     .where({id})
-
-    //     return result[0]
-    // }
-
-    // public update =  async (id: string, postDB: PostsDB): Promise<void> => {
-    //     await BaseDatabase.connection(PostDatabase.TABLE_POSTS)
-    //     .update(postDB)
-    //     .where({id})
-    // }
-
-    // public delete = async (id:string): Promise<void> => {
-    //     await BaseDatabase.connection(PostDatabase.TABLE_POSTS)
-    //     .delete().where({id})
-    // }
-
+   
     public findCommentIfCreatorById = async (commentId:string): Promise< CommentsAndItCreatorDB | undefined >=> {
         const result: CommentsAndItCreatorDB[]= await BaseDatabase
         .connection(CommentDatabase.TABLE_COMMENTS)
@@ -129,14 +115,10 @@ export class CommentDatabase extends BaseDatabase {
         }
     }
 
-    
-
     public commentsLikeOrDislike = async (likeDislike: LikeDislikeComentsDB): Promise<void> => {
         await BaseDatabase.connection(CommentDatabase.TABLE_LIKES_DISLIKES)
         .insert(likeDislike)
     }
-
-   
 
     public update =  async (id: string, commentDB: CommentsDB): Promise<void> => {
         await BaseDatabase.connection(CommentDatabase.TABLE_COMMENTS)
@@ -153,7 +135,13 @@ export class CommentDatabase extends BaseDatabase {
         })   
     }
 
-    
+    public async getUserById(id: string): Promise<UserModel> {
+        const result: UserModel[] = await BaseDatabase
+          .connection(CommentDatabase.TABLE_USERS)
+          .select()
+          .where({ id })
+        return result[0]
+      }
 
     public updateLikeDislike = async (likeDislikeDB: LikeDislikeComentsDB): Promise<void> => {
         await BaseDatabase.connection(CommentDatabase.TABLE_LIKES_DISLIKES)

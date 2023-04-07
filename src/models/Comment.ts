@@ -14,10 +14,7 @@ export class Comment {
             name:string,
             role:USER_ROLES
         }
-        
-       
         ) {}
-
 
         public toDBModel(): CommentsDB{
             return {
@@ -48,7 +45,6 @@ export class Comment {
             }
         }
 
-       
     public getId(): string {
         return this.id
     }
@@ -107,22 +103,6 @@ export class Comment {
         this.postId = value
     }
 
-    // public getCreatorId(): string {
-    //     return this.creatorId
-    //     }
-    
-    // public setCreatorId(value: string): void {
-    //         this.creatorId = value
-    //     }
-
-
-    // public getCreatorName(): string {
-    //         return this.creatorName
-    //         }
-        
-    // public setCreatorName(value: string): void {
-    //             this.creatorName = value
-    //         } 
 
     public getCreator():{id: string, name: string}{return this.creator}
 

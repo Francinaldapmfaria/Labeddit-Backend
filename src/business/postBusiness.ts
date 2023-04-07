@@ -1,11 +1,11 @@
 import { PostDatabase } from "../database/PostDatabase";
-import { CreatePostsInputDTO, DeletePostInputDTO, EditPostInputDTO, GetPostInputDTO, GetPostOutputDTO, LikedislikeInputDTO } from "../dtos/userDTO";
+import { CreatePostsInputDTO, DeletePostInputDTO, EditPostInputDTO, GetPostInputDTO, GetPostOutputDTO, LikedislikeInputDTO, getPostByIdInputDTO } from "../dtos/userDTO";
 import { BadRequestError } from "../error/BadRequestError";
 import { NotFoundError } from "../error/NotFoundError";
 import { Post } from "../models/Post";
 import { IdGenerator } from "../services/IdGenerator";
 import { TokenManager } from "../services/TokenManager";
-import { LikeDislikePostsDB, PostsAndItCreatorDB, PostsDB, POST_LIKE, USER_ROLES } from "../types";
+import { LikeDislikePostsDB, PostsAndItCreatorDB, POST_LIKE, USER_ROLES } from "../types";
 
 export class postBusiness {
     constructor(
@@ -21,6 +21,7 @@ export class postBusiness {
         if(token === undefined) {
             throw new BadRequestError("token não existe")
         }
+
         const payload = this.tokenManager.getPayload(token)
 
         if(payload === null) {
@@ -61,14 +62,12 @@ export class postBusiness {
         if (typeof content !== "string") {
             throw new BadRequestError("'content' deve ser string")
         }
-
         const id = this.idGenerator.generate()
         const createdAt = new Date().toISOString()
         const updatedAt = new Date().toISOString()
         const creatorId = payload.id
         const creatorName = payload.name
        
-
          const post = new Post(
             id,
             content,
@@ -92,12 +91,12 @@ export class postBusiness {
         if(token === undefined) {
             throw new BadRequestError("token não existe")
         }
+
         const payload = this.tokenManager.getPayload(token)
 
         if(payload === null) {
             throw new BadRequestError("token inválido")
         }
-
         if (typeof content !== "string") {
             throw new BadRequestError("content deve ser string")
         }
@@ -114,7 +113,6 @@ export class postBusiness {
         throw new BadRequestError("Edição realizada somente pelo criador")
        }
         const creatorName = payload.name
-
          const post = new Post(
             postDB.id,
             postDB.content,
@@ -126,10 +124,8 @@ export class postBusiness {
             creatorId,
             creatorName
         )
-
         post.setContent(content)
         post.setUpdateAt(new Date().toISOString())
-
         const toUpdatePostDB = post.toDBModel()
         await this.postDatabase.update(idToEdit,toUpdatePostDB)
     }
@@ -140,6 +136,7 @@ export class postBusiness {
         if(token === undefined) {
             throw new BadRequestError("token não existe")
         }
+
         const payload = this.tokenManager.getPayload(token)
  
         if(payload === null) {
@@ -197,7 +194,6 @@ export class postBusiness {
         }
 
         const post= new Post(
-                
             postWithCreatorDB.id,
             postWithCreatorDB.content,
             postWithCreatorDB.likes,
@@ -212,7 +208,6 @@ export class postBusiness {
         .findLikeDislike(likeDislikeDB)
 
         if(likedislikeExists === POST_LIKE.ALREADY_LIKED){
-        
             if(like){
                 await this.postDatabase.removeLikeDislike(likeDislikeDB)
                 post.removeLike()
@@ -221,7 +216,6 @@ export class postBusiness {
                 post.removeLike()
                 post.addDislike()
             }
-
         }else if (likedislikeExists === POST_LIKE.ALREADY_DISLIKED) {
             if(like){
                 await this.postDatabase.updateLikeDislike(likeDislikeDB)
@@ -230,7 +224,6 @@ export class postBusiness {
             }else {
                 await this.postDatabase.removeLikeDislike(likeDislikeDB)
                 post.removeDislike()
-              
             }
 
         } else {
@@ -246,4 +239,54 @@ export class postBusiness {
         await this.postDatabase.update(idLikeDislike,updatePostDB)
        
     } 
+
+    public postsByIdGet = async (input: getPostByIdInputDTO) => {
+
+        const { id, token } = input
+
+        if (typeof token !== 'string') {
+            throw new BadRequestError("Token precisa ser string.")
+        }
+       
+        const payload = this.tokenManager.getPayload(token)
+
+        if (payload === null) {
+            throw new BadRequestError("Token é inválido.")
+        }
+
+        const postSaveByIdDB = await this.postDatabase.getPostById(id)
+
+        if (!postSaveByIdDB) {
+            throw new BadRequestError("Id não existe.")
+        }
+                
+        const instancePost = new Post(
+            postSaveByIdDB.id,
+            postSaveByIdDB.content,
+            postSaveByIdDB.likes,
+            postSaveByIdDB.dislikes,
+            postSaveByIdDB.comments,
+            postSaveByIdDB.created_at,
+            postSaveByIdDB.updated_at,
+            postSaveByIdDB.creator_id,
+            postSaveByIdDB.creator_name
+
+        )
+
+        const postBusiness = instancePost.toBusinessModel()
+        const idCreator = instancePost.getCreatorId()
+        const userDB = await this.postDatabase.getUserById(idCreator)
+
+            const styleGetPost = {
+
+                ...postBusiness,
+                name: userDB.name
+                
+
+            }
+
+        return styleGetPost
+
+
+    }
 }

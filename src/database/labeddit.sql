@@ -55,9 +55,9 @@ FROM posts
 JOIN users
 ON posts.creator_id = users.id;
 
-UPDATE posts 
-SET likes = 1
-WHERE id = "p002";
+-- UPDATE posts 
+-- SET likes = 1
+-- WHERE id = "p002";
 
 
 CREATE TABLE likes_dislikes_posts(

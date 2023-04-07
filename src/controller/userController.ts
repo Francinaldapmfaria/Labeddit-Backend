@@ -17,11 +17,8 @@ export class UserController {
                 email: req.body.email, 
                 password: req.body.password
             }
-            
+    
             const output = await this.userBusiness.userSignup (input)
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",input)
-
-            console.log("GABRIEEEEEEEEEELLLLLL",output)
             res.status(201).send(output)
 
         } catch (error) {

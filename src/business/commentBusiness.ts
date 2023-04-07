@@ -1,4 +1,4 @@
-import { CommentDatabase } from "../database/commentDatabase";
+import { CommentDatabase } from "../database/CommentDatabase";
 import { PostDatabase } from "../database/PostDatabase";
 import { UserDatabase } from "../database/UserDatabase";
 import { CreateCommentsInputDTO, GetCommentInputDTO, GetCommentOutputDTO, LikedislikeCommentInputDTO } from "../dtos/commentDTO";
@@ -7,7 +7,7 @@ import { NotFoundError } from "../error/NotFoundError";
 import { Comment } from "../models/Comment";
 import { IdGenerator } from "../services/IdGenerator";
 import { TokenManager } from "../services/TokenManager";
-import { CommentsAndItCreatorDB, CommentsDB, COMMENT_LIKE, LikeDislikeComentsDB, LikeDislikeCreator, TokenPayload, USER_ROLES } from "../types";
+import {  CommentsDB, COMMENT_LIKE, LikeDislikeComentsDB, LikeDislikeCreator, TokenPayload } from "../types";
 
 export class commentBusiness {
     constructor(
@@ -21,7 +21,6 @@ export class commentBusiness {
 
     public commentsGet = async (input: GetCommentInputDTO): Promise<GetCommentOutputDTO> => {
         const { post_id, token } = input
-
 
         if (token === undefined) {
             throw new BadRequestError("token não existe")
@@ -42,13 +41,11 @@ export class commentBusiness {
             if (!userSearch) {
                 throw new NotFoundError("Usuário não encontrado")
             }
-
             const userComentary: TokenPayload = {
                 id: userSearch.id,
                 name: userSearch.name,
                 role: userSearch.role
             }
-
             const comments = new Comment(
                 comment.id,
                 comment.content,
@@ -59,34 +56,28 @@ export class commentBusiness {
                 comment.post_id,
                 userComentary
             )
-
             return comments.toBusinessModel()
-
         })
         const output: GetCommentOutputDTO = getcommentary
 
         return output
-
     }
 
     public commentsCreate = async (input: CreateCommentsInputDTO): Promise<void> => {
         const { post_id, token, content } = input
-
         if (typeof post_id !== "string") {
             throw new BadRequestError("'post_id' não é uma string")
         }
-
-        if (typeof token !== "string") {
-            throw new BadRequestError("'token' não é uma string")
+        if (!token) {
+            throw new BadRequestError("'token' precisa ser informado")
         }
-
         if (typeof content !== "string") {
             throw new BadRequestError("'content' não é uma string")
         }
-
         if (token === undefined) {
             throw new BadRequestError("token não existe")
         }
+
         const payload = this.tokenManager.getPayload(token)
 
         if (payload === null) {
@@ -103,7 +94,6 @@ export class commentBusiness {
         const createdAt = new Date().toISOString()
         const updatedAt = new Date().toISOString()
 
-
         const comment = new Comment(
             id,
             content,
@@ -114,93 +104,45 @@ export class commentBusiness {
             post_id,
             payload
         )
-
         const commentDB = comment.toDBModel()
         await this.commentDatabase.insert(commentDB)
         await this.commentDatabase.updateNumberCommments(id, 1)
 
-
     }
 
-    // public postsEdit = async (input: EditPostInputDTO): Promise<void> => {
-    //     const {idToEdit, token, content} = input
+    public getCommentsByPostId = async (input: GetCommentInputDTO): Promise<{}[]> => {
 
-    //     if(token === undefined) {
-    //         throw new BadRequestError("token não existe")
-    //     }
-    //     const payload = this.tokenManager.getPayload(token)
+        const { post_id, token } = input
+       
+        if (token === undefined) {
+            throw new BadRequestError(" Enviar um token.")
+        }
 
-    //     if(payload === null) {
-    //         throw new BadRequestError("token inválido")
-    //     }
+        const tokenValid = this.tokenManager.getPayload(token)
 
-    //     if (typeof content !== "string") {
-    //         throw new BadRequestError("content deve ser string")
-    //     }
+        if (tokenValid === null) {
+            throw new BadRequestError(" Token inválido.")
+        }
 
-    //     const postDB = await this.postDatabase.findId(idToEdit)
+        const commentsByPostIdDB = await this.commentDatabase.getCommentsByPostId(post_id)
 
-    //     if(!postDB) {
-    //         throw new NotFoundError("'id' não encontrado")
-    //     }
+        let userWithComments : {}[] = []
 
-    //     const creatorId = payload.id
+        for (const comment of commentsByPostIdDB) {
+            const userDB = await this.commentDatabase.getUserById(comment.creator_id)
+            const styleGetComment = {
+                id: comment.id,
+                creatorName: userDB.name,
+                comment: comment.content,
+                likes: comment.likes,
+                dislikes: comment.dislikes,
+            }
+            userWithComments.push(styleGetComment)
+        }
+        return userWithComments
 
-    //    if(postDB.creator_id !== creatorId){
-    //     throw new BadRequestError("Edição realizada somente pelo criador")
-    //    }
-    //     const creatorName = payload.name
-
-    //      const post = new Post(
-    //         postDB.id,
-    //         postDB.content,
-    //         postDB.likes,
-    //         postDB.dislikes,
-    //         postDB.created_at,
-    //         postDB.updated_at,
-    //         creatorId,
-    //         creatorName
-    //     )
-
-    //     post.setContent(content)
-    //     post.setUpdateAt(new Date().toISOString())
-
-    //     const toUpdatePostDB = post.toDBModel()
-    //     await this.postDatabase.update(idToEdit,toUpdatePostDB)
-    // }
-
-    // public postsDelete = async (input: DeletePostInputDTO): Promise<void> => {
-    //     const {idToDelete, token} = input
-
-    //     if(token === undefined) {
-    //         throw new BadRequestError("token não existe")
-    //     }
-    //     const payload = this.tokenManager.getPayload(token)
-
-    //     if(payload === null) {
-    //         throw new BadRequestError("token inválido")
-
-    //     }
-
-    //     const postDB = await this.postDatabase.findId(idToDelete)
-
-    //     if(!postDB) {
-    //         throw new NotFoundError("'id' não encontrado")
-    //     }
-
-    //     const creatorId = payload.id
-
-    //    if(
-    //     payload.role !== USER_ROLES.ADMIN && 
-    //     postDB.creator_id !== creatorId
-
-    //     ){
-    //     throw new BadRequestError("Só pode ser deletado pelo criador ")
-    //    }
-
-    //     await this.postDatabase.delete(idToDelete)
-    // }
-
+        
+    }
 
     public commentsLikeOrDislike = async (input: LikedislikeCommentInputDTO): Promise<void> => {
         const { idLikeDislike, token, like } = input
@@ -214,10 +156,10 @@ export class commentBusiness {
         if (payload === null) {
             throw new BadRequestError("token inválido")
         }
-
         if (typeof like !== "boolean") {
             throw new BadRequestError("'like' deve ser boolean")
         }
+
         const commentWithCreatorDB = await this.commentDatabase.findCommentIfCreatorById(idLikeDislike)
 
         if (!commentWithCreatorDB) {
@@ -241,10 +183,7 @@ export class commentBusiness {
             role
         }
 
-
-
         const comment = new Comment(
-
             commentWithCreatorDB.id,
             commentWithCreatorDB.content,
             commentWithCreatorDB.likes,
@@ -253,13 +192,11 @@ export class commentBusiness {
             commentWithCreatorDB.updated_at,
             commentWithCreatorDB.post_id,
             creator
-
         )
         const likedislikeExists = await this.commentDatabase
             .findLikeDislike(likeDislikeDB)
 
         if (likedislikeExists === COMMENT_LIKE.ALREADY_LIKED) {
-
             if (like) {
                 await this.commentDatabase.removeLikeDislike(likeDislikeDB)
                 comment.removeLike()
@@ -268,7 +205,6 @@ export class commentBusiness {
                 comment.removeLike()
                 comment.addDislike()
             }
-
         } else if (likedislikeExists === COMMENT_LIKE.ALREADY_DISLIKED) {
             if (like) {
                 await this.commentDatabase.updateLikeDislike(likeDislikeDB)
@@ -277,12 +213,9 @@ export class commentBusiness {
             } else {
                 await this.commentDatabase.removeLikeDislike(likeDislikeDB)
                 comment.removeDislike()
-
             }
-
         } else {
             await this.commentDatabase.commentsLikeOrDislike(likeDislikeDB)
-
             if (like) {
                 comment.addLike()
             } else {

@@ -72,12 +72,12 @@ export class UserBusiness {
         if (typeof email !== "string"){
             throw new BadRequestError("'email'deve ser uma string")
         }
-
         if(typeof password !== "string"){
             throw new BadRequestError("'password' deve ser string")
         }
 
         const searchUserDB:UserDB | undefined = await this.userDatabase.findUserEmail(email)
+        
         if(!searchUserDB) {
             throw new NotFoundError("'email' não encontrado")
         }
