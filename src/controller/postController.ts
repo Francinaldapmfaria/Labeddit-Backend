@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { postBusiness } from "../business/postBusiness"
-import { CreatePostsInputDTO, DeletePostInputDTO, EditPostInputDTO, GetPostInputDTO, LikedislikeInputDTO } from "../dtos/userDTO"
+import { CreatePostsInputDTO, DeletePostInputDTO, EditPostInputDTO, GetPostInputDTO, LikedislikeInputDTO, getPostByIdInputDTO } from "../dtos/userDTO"
 import { BaseError } from "../error/BaseError"
 
 export class PostController {
@@ -33,8 +33,7 @@ export class PostController {
             }
            
             await this.postBusiness.postsCreate(input)
-            console.log("NATALLLLLLLLLLLLL",input)
-
+            
             res.status(201).end()
         } catch (error) {
             console.log(error)
@@ -63,7 +62,6 @@ export class PostController {
             } else {
                 res.status(500).send("Erro inesperado")
             }
-            
         }
     }
 
@@ -105,6 +103,29 @@ export class PostController {
                 res.status(500).send("Erro inesperado")
             }
             
+        }
+    }
+
+    public postsByIdGet = async (req: Request, res: Response) =>{
+
+        try {
+            const input : getPostByIdInputDTO ={
+            id: req.params.id,
+            token: req.headers.authorization, 
+                }
+
+           const output =  await this.postBusiness.postsByIdGet(input)
+    
+            res.status(200).send(output)
+            
+        } catch (error) {
+            console.log(error)
+    
+                if (error instanceof BaseError) {
+                    res.status(error.statusCode).send(error.message)
+                } else {
+                    res.status(500).send("Erro inesperado.")
+                }
         }
     }
 }

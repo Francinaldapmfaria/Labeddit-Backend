@@ -14,7 +14,6 @@ export class LikeDislikePost {
             like: this.like
         } 
     }
-
     public getUserId(): string {
         return this.userId
     }

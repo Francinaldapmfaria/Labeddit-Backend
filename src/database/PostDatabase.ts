@@ -1,10 +1,11 @@
-import { LikeDislikePostsDB, PostsAndItCreatorDB, PostsDB, POST_LIKE } from "../types"
+import { LikeDislikePostsDB, PostsAndItCreatorDB, PostsDB, POST_LIKE, UserModel } from "../types"
 import { BaseDatabase } from "./BaseDatabase"
 
 
 export class PostDatabase extends BaseDatabase {
     public static TABLE_POSTS = "posts"
     public static TABLE_LIKES_DISLIKES = "likes_dislikes_posts"
+    public static TABLE_USERS = "users"
     
 
 
@@ -17,6 +18,7 @@ export class PostDatabase extends BaseDatabase {
             "posts.content" ,
             "posts.likes",
             "posts.dislikes",
+            "posts.comments",
             "posts.created_at",
             "posts.updated_at",
             "users.name As creator_name"
@@ -108,6 +110,21 @@ export class PostDatabase extends BaseDatabase {
             post_id: likeDislikeDB.post_id
         })
     }
+
+    public async getPostById(id: string): Promise<PostsAndItCreatorDB | undefined> {
+        const result: PostsAndItCreatorDB[] = await BaseDatabase
+          .connection(PostDatabase.TABLE_POSTS)
+          .where({ id: id })
+        return result[0]
+      }
+
+      public async getUserById(id: string): Promise<UserModel> {
+        const result: UserModel[] = await BaseDatabase
+          .connection(PostDatabase.TABLE_USERS)
+          .select()
+          .where({ id })
+        return result[0]
+      }
 }
 
 

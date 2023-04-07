@@ -21,7 +21,6 @@ export interface LoginOutputDtO {
 
 export interface GetPostInputDTO {
     token: string | undefined
-
 }
 
 export type GetPostOutputDTO = PostsModel[]
@@ -40,13 +39,22 @@ export interface EditPostInputDTO {
 export interface DeletePostInputDTO {
     idToDelete: string,
     token: string |undefined
-    
 }
 
 export interface LikedislikeInputDTO {
     idLikeDislike: string,
     token: string | undefined,
     like: unknown
+}
+
+export interface getPostByIdInputDTO{
+    id: string,
+    token: string | undefined
+}
+
+export interface getPostByIdInputDTO{
+    id: string,
+    token: string | undefined
 }
 
 
